@@ -1,14 +1,19 @@
-'HP,MN,ATK,DEF
 DIM P1%(26)
+'HP,MN,ATK
 P1%(0)=8:P1%(1)=7:P1%(2)=1
+'DEF,SP,SPC,SPV
 P1%(3)=1:P1%(6)=1:P1%(7)=4.5:P1%(8)=2
-P1%(10)=0:P1%(11)=1
+'ART,AR1
+'P1%(10)=1:P1%(11)=1 'STEADY SHIELD
+P1%(10)=2 'ENDLESS SANDBAG
+'IHP,IMN
 P1%(25)=8:P1%(26)=7
 'P1%(15)=1:P1%(16)=0.5
 DIM N1%(22)
 'N1 8,4,2,2
 N1%(0)=8:N1%(1)=4:N1%(2)=2
 N1%(3)=2
+DIM DP$(4)
 
 'ROLL DICE
 D1=0
@@ -41,7 +46,7 @@ ENDPROC
 PROC SPC
   P1%(1)=P1%(1)-P1%(7) 'SUBTRACT MN
   IF P1%(6)=1
-    PRINT"HEAL"
+    DP$(1)="HEAL"
     P1%(0)=P1%(0)+P1%(8)
     IF P1%(0)>P1%(25)
       P1%(0)=P1%(25)
@@ -52,37 +57,77 @@ ENDPROC
 'APPLY DEF ARTIFACTS
 PROC ADA ART
   IF P1%(ART)=1 'STEADY SHIELD
-    PRINT"SHIELD!"
+    DP$(2)="SHIELD!"
     HD%=HD%-P1%(ART+1)
+  ELIF P1%(ART)=2 'ENDLESS SANDBAG
+    C=RAND(6)+1
+    IF C>4
+      DP$(2)="THROW SAND!"
+      HD%=0
+    ENDIF
   ENDIF
+ENDPROC
+
+'UPDATE DISPLAY
+PROC UPDP
+  POS. 16,9
+  PRINT"               "
+  POS. 16,9
+  PRINT DP$(0)
+  POS. 16,10
+  PRINT"               "
+  POS. 16,10
+  PRINT DP$(1)
+  POS. 16,11
+  PRINT"                    "
+  POS. 16,11
+  PRINT DP$(2)
+  POS. 9,14
+  PRINT"               "
+  POS. 9,14
+  PRINT P1%(0);",";P1%(1),,N1%(0)
+  FOR S=0 TO 3
+    DP$(S)=""
+  NEXT S
+ENDPROC
+
+'DRAW PLAYERS
+PROC DRPL
+  POS. 9,13
+  PRINT"P",,"d"
 ENDPROC
 
 'MAIN
 REPEAT
-  EXEC RD
+  @DRPL
+  @RD
   IF D1>(D2+N1%(3))
-    PRINT"STRIKE"
-    EXEC ATCK
-    IF P1%(1)>=P1%(7)
-      EXEC SPC
-    ENDIF
+    DP$(0)="STRIKE"
+    @ATCK
+    'IF P1%(1)>=P1%(7)
+      'EXEC SPC
+    'ENDIF
   ELIF D2>(D1+P1%(3))
-    PRINT"GOT HIT"
-    EXEC DFND
+    DP$(0)="GOT HIT"
+    @DFND
   ELSE
-    PRINT"PARRY"
+    DP$(0)="PARRY"
+  ENDIF
+  IF P1%(1)>=P1%(7)
+    @SPC
   ENDIF
   P1%(1)=P1%(1)+0.5 'REPLENISH MN
   IF P1%(1)>P1%(26)
     P1%(1)=P1%(26)
   ENDIF
-  PRINT P1%(0);",";P1%(1),N1%(0)
-  PAUSE 25
+  @UPDP
+  PAUSE 50
 UNTIL P1%(0)<=0 OR N1%(0)<=0
+POS. 16,15
 IF P1%(0)<=0 AND N1%(0)<=0
   PRINT"STALEMATE!"
 ELIF P1%(0)<=0
-  PRINT"LOST!"
+  PRINT"LOST"
 ELSE
   PRINT"WON!"
 ENDIF
