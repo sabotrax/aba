@@ -1,19 +1,21 @@
-DIM P1%(26)
+DIM P1(30)
 'HP,MN,ATK
-P1%(0)=8:P1%(1)=7:P1%(2)=1
+P1(0)=8:P1(1)=7:P1(2)=1
 'DEF,SP,SPC,SPV
-P1%(3)=1:P1%(6)=1:P1%(7)=4.5:P1%(8)=2
+P1(3)=1:P1(6)=1:P1(7)=6:P1(8)=2
 'ART,AR1
-'P1%(10)=1:P1%(11)=1 'STEADY SHIELD
-P1%(10)=2 'ENDLESS SANDBAG
+'P1(10)=1:P1(11)=1 'STEADY SHIELD
+P1(10)=2 'ENDLESS SANDBAG
 'IHP,IMN
-P1%(25)=8:P1%(26)=7
-'P1%(15)=1:P1%(16)=0.5
-DIM N1%(22)
-'N1 8,4,2,2
-N1%(0)=8:N1%(1)=4:N1%(2)=2
-N1%(3)=2
+P1(25)=8:P1(26)=7
+'P1(15)=1:P1(16)=1
+'CLASS
+P1(27)=80
+'DEBUFFS
+P1(28)=0:P1(29)=0:P1(30)=0
 DIM DP$(4)
+DIM AN(10)
+ANC=0
 
 'ROLL DICE
 D1=0
@@ -25,45 +27,49 @@ ENDPROC
 
 'ATTACK
 PROC ATCK
-  N1%(0)=N1%(0)-P1%(2)
+  AN(0)=AN(0)-P1(2)
 ENDPROC
 
 'DEFEND
 PROC DFND
-  HD%=N1%(2) 'W/O ARTIFACTS
-  FOR A=10 TO 20 STEP 5
-    IF P1%(A)>0
-      EXEC ADA A
+  HD=AN(2) 'W/0 ARTIFACTS
+  IF AN(4)=1 'AN SPECIAL: DOT
+    O=RAND(6)+1
+    IF O>AN(7)
+      DP$(0)="HIT BY DOT"
+      P1(28)=AN(4):P1(29)=AN(5)
+      P1(30)=AN(6)
     ENDIF
-  NEXT A
-  IF HD%<0
-    HD%=0
   ENDIF
-  P1%(0)=P1%(0)-HD%
 ENDPROC
 
 'SPECIAL
 PROC SPC
-  P1%(1)=P1%(1)-P1%(7) 'SUBTRACT MN
-  IF P1%(6)=1
+  P1(1)=P1(1)-P1(7) 'SUBTRACT MN
+  IF P1(6)=1
     DP$(1)="HEAL"
-    P1%(0)=P1%(0)+P1%(8)
-    IF P1%(0)>P1%(25)
-      P1%(0)=P1%(25)
-    ENDIF
+    P1(0)=P1(0)+P1(8)
+  ENDIF
+  IF P1(0)>P1(25)
+    P1(0)=P1(25)
   ENDIF
 ENDPROC
 
 'APPLY DEF ARTIFACTS
 PROC ADA ART
-  IF P1%(ART)=1 'STEADY SHIELD
+  IF P1(ART)=1 'STEADY SHIELD
     DP$(2)="SHIELD!"
-    HD%=HD%-P1%(ART+1)
-  ELIF P1%(ART)=2 'ENDLESS SANDBAG
-    C=RAND(6)+1
-    IF C>4
+    HD=HD-P1(ART+1)
+  ELIF P1(ART)=2 'ENDLESS SANDBAG
+    O=RAND(6)+1
+    IF O>4
       DP$(2)="THROW SAND!"
-      HD%=0
+      HD=0
+      'XX
+      IF P1(28)=1 AND P1(30)=2
+        'PRINT"REMOVE DOT"
+        @CLRDB 28
+      ENDIF
     ENDIF
   ENDIF
 ENDPROC
@@ -85,7 +91,7 @@ PROC UPDP
   POS. 9,14
   PRINT"               "
   POS. 9,14
-  PRINT P1%(0);",";P1%(1),,N1%(0)
+  PRINT P1(0);",";P1(1),,AN(0)
   FOR S=0 TO 3
     DP$(S)=""
   NEXT S
@@ -94,39 +100,136 @@ ENDPROC
 'DRAW PLAYERS
 PROC DRPL
   POS. 9,13
-  PRINT"P",,"d"
+  PRINT CHR$(P1(27)),,;
+  IF AN(8)>0
+    PRINT CHR$(AN(8));CHR$(AN(9))
+  ELSE
+    PRINT CHR$(AN(9))
+  ENDIF
+ENDPROC
+
+'INIT NPCS
+PROC IN
+  DIM NP1(10):DIM NP2(10):DIM NP3(10)
+  DIM NP4(10):DIM NP5(10):DIM NP6(10)
+  DIM NP7(10):DIM NP8(10)
+  DIM NPS(8)
+  NP1(0)=8:NP1(1)=4:NP1(2)=2:NP1(3)=2
+  'DOT,DMG,DURATION,HIT
+  'NP1(4)=1:NP1(5)=1:NP1(6)=3:NP1(7)=4
+
+  NP1(9)=100
+  NP2(0)=9:NP2(1)=4:NP2(2)=0:NP2(3)=3
+  NP2(4)=1:NP2(5)=2:NP2(6)=3:NP2(7)=4
+  NP2(8)=115:NP2(9)=100
+  NP3(0)=6:NP3(1)=4:NP3(2)=3:NP3(3)=2
+  NP3(8)=97:NP3(9)=100
+  NPS(0)=ADR(NP1):NPS(1)=ADR(NP2)
+  NPS(2)=ADR(NP3)
+ENDPROC
+
+'LOAD NEXT NPC
+PROC LNNPC
+  'PRINT "ANC ";ANC
+  'PRINT "MEMPOS ";NPS(ANC)
+  J=0
+  'ANC=2
+  FOR I=NPS(ANC) TO NPS(ANC)+18 STEP 2
+
+    AN(J)=DPEEK(I)
+    'PRINT AN(J)
+    J=J+1
+  NEXT I
+  'END
+ENDPROC
+
+'CLEAR DEBUFF
+PROC CLRDB DB
+  P1(DB)=0:P1(DB+1)=0:P1(DB+2)=0
+  'PRINT"CLRDB: ";P1(28);P1(29);P1(30)
+
 ENDPROC
 
 'MAIN
+@IN
+CLS
 REPEAT
+  IF AN(0)=0 AND ANC<3
+    @LNNPC
+    P1(0)=P1(25):P1(1)=P1(26)
+    @CLRDB 28
+    ANC=ANC+1
+    @DRPL
+    DP$(0)="READY?"
+    @UPDP
+    GET K
+  ELIF AN(0)=0
+    EXIT
+  ENDIF
   @DRPL
   @RD
-  IF D1>(D2+N1%(3))
+  IF D1>(D2+AN(3))
     DP$(0)="STRIKE"
     @ATCK
-    'IF P1%(1)>=P1%(7)
-      'EXEC SPC
-    'ENDIF
-  ELIF D2>(D1+P1%(3))
-    DP$(0)="GOT HIT"
+  ELIF D2>(D1+P1(3))
+    IF AN(2)>0
+      DP$(0)="GOT HIT"
+    ELSE
+      DP$(0)="BEEN LUCKY"
+    ENDIF
     @DFND
   ELSE
     DP$(0)="PARRY"
   ENDIF
-  IF P1%(1)>=P1%(7)
+
+  'PRINT"DBFS ";P1(28);P1(29);P1(30)
+  IF P1(28)=1 AND P1(30)>0 'APPLY DBFS
+
+    HD=HD+P1(29):P1(30)=P1(30)-1
+    'PRINT"DUR ";P1(30)
+    'PRINT"0 ";HD
+    IF P1(30)<=0
+      @CLRDB 28
+    ENDIF
+  ENDIF
+
+  'PRINT"1 ";HD
+  FOR A=10 TO 20 STEP 5
+    IF P1(A)>0
+      IF D2>(D1+P1(3))
+        EXEC ADA A
+      ENDIF
+    ENDIF
+  NEXT A
+  'PRINT"2 ";HD
+  IF HD<0
+    HD=0
+  ENDIF
+  P1(0)=P1(0)-HD:HD=0
+  IF P1(0)<0
+    P1(0)=0
+  ENDIF
+
+  IF P1(1)>=P1(7)
     @SPC
   ENDIF
-  P1%(1)=P1%(1)+0.5 'REPLENISH MN
-  IF P1%(1)>P1%(26)
-    P1%(1)=P1%(26)
+  P1(1)=P1(1)+1 'REPLENISH MN
+  IF P1(1)>P1(26)
+    P1(1)=P1(26)
   ENDIF
   @UPDP
   PAUSE 50
-UNTIL P1%(0)<=0 OR N1%(0)<=0
+  IF AN(0)=0
+    DP$(0)="GOOD JOB!"
+    @UPDP
+    PAUSE 200
+  ENDIF
+  'GET K:CLS
+UNTIL P1(0)<=0
 POS. 16,15
-IF P1%(0)<=0 AND N1%(0)<=0
+IF P1(0)<=0 AND AN(0)<=0
   PRINT"STALEMATE!"
-ELIF P1%(0)<=0
+ELIF P1(0)<=0
   PRINT"LOST"
 ELSE
   PRINT"WON!"
