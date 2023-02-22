@@ -16,7 +16,7 @@ Be warned - this is pre alpha code and I haven't touched BASIC in 35 years.
 ### Artifacts
 
 * Endless Sandbag - lowers the enemy's hit chance.  
-  You reach into the bag, aim for the eyes of the terrible monster and throw the sand..
+  You reach into the bag, aim for the eyes of the terrible monster and throw..
 * Steady Shield - blocks some of the incoming damage.  
   There may be better, but there sure a much worse..
 
