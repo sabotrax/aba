@@ -1,18 +1,18 @@
-DIM P1(30)
+DIM P1(31)
 'HP,MN,ATK
 P1(0)=8:P1(1)=7:P1(2)=1
 'DEF,SP,SPC,SPV
 P1(3)=1:P1(6)=1:P1(7)=6:P1(8)=2
 'ART,AR1
-'P1(10)=1:P1(11)=1 'STEADY SHIELD
-P1(10)=2 'ENDLESS SANDBAG
+P1(10)=1:P1(11)=1 'STEADY SHIELD
+'P1(10)=2 'ENDLESS SANDBAG
 'IHP,IMN
 P1(25)=8:P1(26)=7
 'P1(15)=1:P1(16)=1
 'CLASS
 P1(27)=80
 'DEBUFFS
-P1(28)=0:P1(29)=0:P1(30)=0
+P1(28)=0:P1(29)=0:P1(30)=0:P1(31)=0
 DIM DP$(4)
 DIM AN(10)
 ANC=0
@@ -38,7 +38,7 @@ PROC DFND
     IF O>AN(7)
       DP$(0)="HIT BY DOT"
       P1(28)=AN(4):P1(29)=AN(5)
-      P1(30)=AN(6)
+      P1(30)=AN(6):P1(31)=AN(6)
     ENDIF
   ENDIF
 ENDPROC
@@ -65,10 +65,13 @@ PROC ADA ART
     IF O>4
       DP$(2)="THROW SAND!"
       HD=0
-      'XX
-      IF P1(28)=1 AND P1(30)=2
-        'PRINT"REMOVE DOT"
-        @CLRDB 28
+      IF P1(28)=1
+        IF P1(30)=P1(31)
+          PRINT"REMOVE DOT"
+            @CLRDB 28
+          ELSE
+            PRINT"KEEP DOT"
+          ENDIF
       ENDIF
     ENDIF
   ENDIF
@@ -100,7 +103,12 @@ ENDPROC
 'DRAW PLAYERS
 PROC DRPL
   POS. 9,13
-  PRINT CHR$(P1(27)),,;
+  PRINT CHR$(P1(27));
+  IF P1(28)=1
+    PRINT"*";
+  ENDIF
+  PRINT"",,;
+  
   IF AN(8)>0
     PRINT CHR$(AN(8));CHR$(AN(9))
   ELSE
@@ -114,13 +122,13 @@ PROC IN
   DIM NP4(10):DIM NP5(10):DIM NP6(10)
   DIM NP7(10):DIM NP8(10)
   DIM NPS(8)
-  NP1(0)=8:NP1(1)=4:NP1(2)=2:NP1(3)=2
+  NP1(0)=8:NP1(1)=4:NP1(2)=0:NP1(3)=2
   'DOT,DMG,DURATION,HIT
-  'NP1(4)=1:NP1(5)=1:NP1(6)=3:NP1(7)=4
-
+  NP1(4)=1:NP1(5)=1:NP1(6)=3:NP1(7)=3
   NP1(9)=100
   NP2(0)=9:NP2(1)=4:NP2(2)=0:NP2(3)=3
-  NP2(4)=1:NP2(5)=2:NP2(6)=3:NP2(7)=4
+  'NP2(4)=1:NP2(5)=2:NP2(6)=3:NP2(7)=4
+
   NP2(8)=115:NP2(9)=100
   NP3(0)=6:NP3(1)=4:NP3(2)=3:NP3(3)=2
   NP3(8)=97:NP3(9)=100
@@ -145,9 +153,9 @@ ENDPROC
 
 'CLEAR DEBUFF
 PROC CLRDB DB
-  P1(DB)=0:P1(DB+1)=0:P1(DB+2)=0
-  'PRINT"CLRDB: ";P1(28);P1(29);P1(30)
-
+  P1(DB)=0:P1(DB+1)=0
+  P1(DB+2)=0:P1(DB+3)=0
+  PRINT"IN CLRDB"
 ENDPROC
 
 'MAIN
@@ -166,7 +174,7 @@ REPEAT
   ELIF AN(0)=0
     EXIT
   ENDIF
-  @DRPL
+  '@DRPL
   @RD
   IF D1>(D2+AN(3))
     DP$(0)="STRIKE"
@@ -175,25 +183,24 @@ REPEAT
     IF AN(2)>0
       DP$(0)="GOT HIT"
     ELSE
-      DP$(0)="BEEN LUCKY"
+      DP$(0)="BITE"
     ENDIF
     @DFND
   ELSE
     DP$(0)="PARRY"
   ENDIF
 
-  'PRINT"DBFS ";P1(28);P1(29);P1(30)
+  PRINT"DBS ";P1(28);P1(29);P1(30);P1(
+31)
   IF P1(28)=1 AND P1(30)>0 'APPLY DBFS
 
-    HD=HD+P1(29):P1(30)=P1(30)-1
-    'PRINT"DUR ";P1(30)
-    'PRINT"0 ";HD
-    IF P1(30)<=0
-      @CLRDB 28
-    ENDIF
+    HD=HD+P1(29)
+    PRINT"HD IDB ";HD
   ENDIF
 
-  'PRINT"1 ";HD
+  @DRPL
+
+  PRINT"HD VA ";HD
   FOR A=10 TO 20 STEP 5
     IF P1(A)>0
       IF D2>(D1+P1(3))
@@ -201,7 +208,7 @@ REPEAT
       ENDIF
     ENDIF
   NEXT A
-  'PRINT"2 ";HD
+  PRINT"HD NA ";HD
   IF HD<0
     HD=0
   ENDIF
@@ -210,9 +217,18 @@ REPEAT
     P1(0)=0
   ENDIF
 
-  IF P1(1)>=P1(7)
+  IF P1(1)>=P1(7) 'CAST SPECIAL
     @SPC
   ENDIF
+  
+  IF P1(28)>0 AND P1(30)>0
+    P1(30)=P1(30)-1
+    PRINT"DBDU ";P1(30)
+    IF P1(30)=0
+      @CLRDB 28
+    ENDIF
+  ENDIF
+
   P1(1)=P1(1)+1 'REPLENISH MN
   IF P1(1)>P1(26)
     P1(1)=P1(26)
@@ -224,7 +240,7 @@ REPEAT
     @UPDP
     PAUSE 200
   ENDIF
-  'GET K:CLS
+  GET K:CLS
 UNTIL P1(0)<=0
 POS. 16,15
 IF P1(0)<=0 AND AN(0)<=0
