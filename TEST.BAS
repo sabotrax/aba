@@ -2,10 +2,9 @@ DIM P1(31)
 'HP,MN,ATK
 P1(0)=8:P1(1)=7:P1(2)=1
 'DEF,SP,SPC,SPV
-P1(3)=1:P1(6)=1:P1(7)=6:P1(8)=2
-'ART,AR1
-P1(10)=1:P1(11)=1 'STEADY SHIELD
-'P1(10)=2 'ENDLESS SANDBAG
+P1(3)=1:P1(6)=1:P1(7)=4:P1(8)=3
+'ART,AR1,AR2
+P1(10)=0:P1(11)=0:P1(12)=0
 'IHP,IMN
 P1(25)=8:P1(26)=7
 'P1(15)=1:P1(16)=1
@@ -64,13 +63,15 @@ PROC ADA ART
     O=RAND(6)+1
     IF O>4
       DP$(2)="THROW SAND!"
-      HD=0
-      IF P1(28)=1
+      IF P1(28)=0
+        HD=0
+      ELIF P1(28)=1
         IF P1(30)=P1(31)
-          PRINT"REMOVE DOT"
+            'PRINT"REMOVE DOT"
+            HD=0
             @CLRDB 28
-          ELSE
-            PRINT"KEEP DOT"
+          'ELSE
+            'PRINT"KEEP DOT"
           ENDIF
       ENDIF
     ENDIF
@@ -122,18 +123,30 @@ PROC IN
   DIM NP4(10):DIM NP5(10):DIM NP6(10)
   DIM NP7(10):DIM NP8(10)
   DIM NPS(8)
-  NP1(0)=8:NP1(1)=4:NP1(2)=0:NP1(3)=2
+  NP1(0)=8:NP1(1)=4:NP1(2)=2:NP1(3)=2
   'DOT,DMG,DURATION,HIT
-  NP1(4)=1:NP1(5)=1:NP1(6)=3:NP1(7)=3
+  'NP1(4)=1:NP1(5)=1:NP1(6)=3:NP1(7)=3
+
   NP1(9)=100
   NP2(0)=9:NP2(1)=4:NP2(2)=0:NP2(3)=3
-  'NP2(4)=1:NP2(5)=2:NP2(6)=3:NP2(7)=4
-
+  NP2(4)=1:NP2(5)=2:NP2(6)=2:NP2(7)=4
   NP2(8)=115:NP2(9)=100
   NP3(0)=6:NP3(1)=4:NP3(2)=3:NP3(3)=2
   NP3(8)=97:NP3(9)=100
   NPS(0)=ADR(NP1):NPS(1)=ADR(NP2)
   NPS(2)=ADR(NP3)
+ENDPROC
+
+'INIT ARTIFACTS
+PROC IA
+  DIM A1(3):DIM A2(3)
+  DIM AS(2)
+  A1N$="STEADY SHIELD" 'ART. NAME
+  A1(0)=1:A1(1)=ADR(A1N$):A1(2)=1
+  A2N$="ENDLESS SANDBAG"
+  A2(0)=2:A2(1)=ADR(A2N$):A2(2)=0
+
+  AS(0)=ADR(A1):AS(1)=ADR(A2)
 ENDPROC
 
 'LOAD NEXT NPC
@@ -148,21 +161,103 @@ PROC LNNPC
     'PRINT AN(J)
     J=J+1
   NEXT I
-  'END
 ENDPROC
 
 'CLEAR DEBUFF
 PROC CLRDB DB
   P1(DB)=0:P1(DB+1)=0
   P1(DB+2)=0:P1(DB+3)=0
-  PRINT"IN CLRDB"
+  'PRINT"IN CLRDB"
+ENDPROC
+
+'GET RANDOM ARTIFACT
+PROC GRA
+  'FOR I=0 TO 1 'LEN. AS()
+    'PRINT"ADR. ";AS(I)
+  'NEXT I
+  I=RAND(2) 'LEN. AS
+  'I=0 'XX
+  'PRINT I
+  DIM RA(3):K=0 'RANDOM ART.
+  FOR J=AS(I) TO AS(I)+4 STEP 2
+    'PRINT J
+    'IF K=1
+      '@GS DPEEK(J)
+    'ENDIF
+    RA(K)=DPEEK(J)
+    K=K+1
+  NEXT J
+  'PRINT
+  'FOR K=0 TO 2
+    'IF K=1
+      '@GS RA(K)
+    'ELSE
+      'PRINT RA(K)
+    'ENDIF
+  'NEXT K
+ENDPROC
+
+'GET STRING
+PROC GS SA 'STRING ADR.
+  'PRINT "STRING. ADR. ";SA
+  TAN$="" 'TEMP. ART. NAME
+  'PRINT PEEK(SA)
+  FOR I=SA+1 TO I-1+PEEK(SA)
+    'PRINT CHR$(PEEK(I));
+    TAN$=+CHR$(PEEK(I))
+  NEXT I
+  PRINT TAN$;
+ENDPROC
+
+'GET REWARD
+PROC GR
+  POS. 9,2:PRINT"COLLECT YOUR REWARD"
+  @GRA
+  POS. 10,3:PRINT"(";RA(0);") ";
+  @GS RA(1):PRINT
+  POS. 10,4:PRINT"(C) COINS"
+  DO
+    GET I
+    IF I=RA(0)+48 'ATASCII
+      'PRINT I
+      'PRINT RA(0)
+      'PRINT RA(2)
+      'COPY RA -> P1
+      CPD=0 'COPIED
+      'XX BETTER CHOOSE ART. SLOT
+      FOR J=10 TO 20 STEP 5
+        IF P1(J)=0 AND CPD=0
+          P1(J)=RA(0)
+          P1(J+1)=RA(2) 'XX SHLD BE NA
+ME
+          CPD=1
+          'PRINT"ART. COPIED"
+          'PRINT"ART. ";P1(J);" ";P1(J
++1)
+        ENDIF
+      NEXT J
+      'PRINT"NOCHMAL"
+      'PRINT P1(10)
+      'PRINT P1(11)
+      EXIT
+    ELIF I=67
+      PRINT"NOT IMPLEMENTED YET"
+      EXIT
+    ENDIF
+  LOOP
 ENDPROC
 
 'MAIN
 @IN
+@IA
 CLS
 REPEAT
   IF AN(0)=0 AND ANC<3
+    IF ANC>0
+      @GR
+      'END
+      CLS
+    ENDIF
     @LNNPC
     P1(0)=P1(25):P1(1)=P1(26)
     @CLRDB 28
@@ -175,6 +270,7 @@ REPEAT
     EXIT
   ENDIF
   '@DRPL
+
   @RD
   IF D1>(D2+AN(3))
     DP$(0)="STRIKE"
@@ -190,25 +286,26 @@ REPEAT
     DP$(0)="PARRY"
   ENDIF
 
-  PRINT"DBS ";P1(28);P1(29);P1(30);P1(
-31)
+  'PRINT"DBS ";P1(28);P1(29);P1(30);P1
+(31)
   IF P1(28)=1 AND P1(30)>0 'APPLY DBFS
 
     HD=HD+P1(29)
-    PRINT"HD IDB ";HD
+    'PRINT"HD IDB ";HD
   ENDIF
 
   @DRPL
 
-  PRINT"HD VA ";HD
+  'PRINT"HD VA ";HD
   FOR A=10 TO 20 STEP 5
     IF P1(A)>0
-      IF D2>(D1+P1(3))
+      IF D2>(D1+P1(3)) OR P1(28)>0
         EXEC ADA A
       ENDIF
     ENDIF
   NEXT A
-  PRINT"HD NA ";HD
+  'PRINT"HD NA ";HD
+
   IF HD<0
     HD=0
   ENDIF
@@ -223,7 +320,7 @@ REPEAT
   
   IF P1(28)>0 AND P1(30)>0
     P1(30)=P1(30)-1
-    PRINT"DBDU ";P1(30)
+    'PRINT"DBDU ";P1(30)
     IF P1(30)=0
       @CLRDB 28
     ENDIF
@@ -240,7 +337,7 @@ REPEAT
     @UPDP
     PAUSE 200
   ENDIF
-  GET K:CLS
+  'GET K:CLS
 UNTIL P1(0)<=0
 POS. 16,15
 IF P1(0)<=0 AND AN(0)<=0
