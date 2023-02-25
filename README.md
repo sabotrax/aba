@@ -8,7 +8,7 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
 * ATASCII only, no graphics. Output is mostly for debugging purpose. 
 * A weak priest with a moderate healing spell is fighting against three NPCs in a row.  
   The priest will heal himself if he has enough mana.  
-  After he has one a fight, you can choose a random artifact that makes him stronger.  
+  After he has won a fight, you can choose a random artifact that will make him stronger.  
   The first NPC is a dog, the second is a sturdy dog with higher defense and a DOT,
   the last NPC is an aggressive dog with a stronger attack.
 
@@ -33,7 +33,7 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
   ```
   LOAD FB.com
   RUN
-  [CTRL-W], then Load? D:TEST3.BAS [RETURN]
+  [CTRL-L], then Load? D:TEST3.BAS [RETURN]
   ```
 
 ## License
