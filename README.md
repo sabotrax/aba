@@ -31,7 +31,7 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
   ```
 * You can also edit the code in the FastBasic editor:
   ```
-  LOAD FB.com
+  LOAD FB.COM
   RUN
   [CTRL-L], then Load? D:TEST3.BAS [RETURN]
   ```
