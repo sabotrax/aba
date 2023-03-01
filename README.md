@@ -18,6 +18,8 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
   You reach into the bag, aim for the eyes of the terrible monster and throw..
 * Steady Shield - blocks some of the incoming damage.  
   There may be better, but there sure a much worse..
+* Bassona - reflects some direct damage. doesn't work all the time.  
+  The device is vibrating with a deep humming sound..
 
 ### How to run the game
 
@@ -45,4 +47,5 @@ Distributed under the New BSD License, see LICENSE.txt.
 Inspiration, documentation, code snippets, etc.
 * [FastBasic](https://github.com/dmsc/fastbasic)
 * [FastBasic Manual](https://github.com/dmsc/fastbasic/blob/master/manual.md)
+* [Altirra](https://www.virtualdub.org/altirra.html), an 8-bit Atari computer emulator
 * [Astronarch](https://store.steampowered.com/app/1234940/Astronarch/)
