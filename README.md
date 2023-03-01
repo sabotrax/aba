@@ -19,7 +19,7 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
 * Steady Shield - blocks some of the incoming damage.  
   There may be better, but there sure a much worse..
 * Bassona - reflects some direct damage. doesn't work all the time.  
-  The device is vibrating with a deep humming sound..
+  The strange device is vibrating with a deep humming sound..
 
 ### How to run the game
 
