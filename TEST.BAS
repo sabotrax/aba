@@ -2,12 +2,14 @@ DIM P1(31)
 'HP,MN,ATK
 P1(0)=8:P1(1)=7:P1(2)=1
 'DEF,SP,SPC,SPV
-P1(3)=1:P1(6)=1:P1(7)=4:P1(8)=3
+P1(3)=1:P1(6)=1:P1(7)=4:P1(8)=2
 'ART,AR1,AR2
-P1(10)=0:P1(11)=0:P1(12)=0
+'P1(10)=0:P1(11)=0:P1(12)=0
+P1(10)=0 
+P1(15)=0:P1(16)=0:P1(17)=0
+P1(20)=0:P1(21)=0:P1(22)=0
 'IHP,IMN
 P1(25)=8:P1(26)=7
-'P1(15)=1:P1(16)=1
 'CLASS
 P1(27)=80
 'DEBUFFS
@@ -26,12 +28,12 @@ ENDPROC
 
 'ATTACK
 PROC ATCK
-  AN(0)=AN(0)-P1(2)
+  NHD=P1(2)
 ENDPROC
 
 'DEFEND
 PROC DFND
-  HD=AN(2) 'W/0 ARTIFACTS
+  PHD=AN(2) 'W/0 ARTIFACTS
   IF AN(4)=1 'AN SPECIAL: DOT
     O=RAND(6)+1
     IF O>AN(7)
@@ -58,23 +60,30 @@ ENDPROC
 PROC ADA ART
   IF P1(ART)=1 'STEADY SHIELD
     DP$(2)="SHIELD!"
-    HD=HD-P1(ART+1)
+    PHD=PHD-P1(ART+1)
   ELIF P1(ART)=2 'ENDLESS SANDBAG
     O=RAND(6)+1
     IF O>4
       DP$(2)="THROW SAND!"
-      IF P1(28)=0
-        HD=0
-      ELIF P1(28)=1
-        IF P1(30)=P1(31)
-            'PRINT"REMOVE DOT"
-            HD=0
-            @CLRDB 28
-          'ELSE
-            'PRINT"KEEP DOT"
-          ENDIF
+      IF P1(28)=0 'XX SHORTEN?
+        PHD=0
+      ELIF P1(28)=1 AND P1(30)=P1(31)
+        PHD=0
+        @CLRDB 28
       ENDIF
     ENDIF
+  ELIF P1(ART)=3 'BASSONA
+    'PRINT"BASS ";AN(2)
+    O=RAND(6)+1
+    IF AN(2)=1 AND O>4
+      DP$(2)="BASSONA!"
+      NHD=1
+    ELIF AN(2)>1 AND O>3
+      DP$(2)="BASSONA!"
+      NHD=AN(2)/2
+    ENDIF
+    'PRINT"NHD ";NHD
+    'GET K
   ENDIF
 ENDPROC
 
@@ -96,7 +105,7 @@ PROC UPDP
   PRINT"               "
   POS. 9,14
   PRINT P1(0);",";P1(1),,AN(0)
-  FOR S=0 TO 3
+  FOR S=0 TO 2
     DP$(S)=""
   NEXT S
 ENDPROC
@@ -106,7 +115,7 @@ PROC DRPL
   POS. 9,13
   PRINT CHR$(P1(27));
   IF P1(28)=1
-    PRINT"*";
+    PRINT"*"; 'DOT MARK
   ENDIF
   PRINT"",,;
   
@@ -115,6 +124,15 @@ PROC DRPL
   ELSE
     PRINT CHR$(AN(9))
   ENDIF
+
+  I=16
+  FOR J=10 TO 20 STEP 5
+    IF P1(J)>0
+      POS. 4,I
+      PRINT $(P1(J+4));
+      INC I
+    ENDIF
+  NEXT J
 ENDPROC
 
 'INIT NPCS
@@ -139,14 +157,16 @@ ENDPROC
 
 'INIT ARTIFACTS
 PROC IA
-  DIM A1(3):DIM A2(3)
-  DIM AS(2)
+  DIM A1(3):DIM A2(3):DIM A3(3)
+  DIM AS(3)
   A1N$="STEADY SHIELD" 'ART. NAME
   A1(0)=1:A1(1)=ADR(A1N$):A1(2)=1
   A2N$="ENDLESS SANDBAG"
   A2(0)=2:A2(1)=ADR(A2N$):A2(2)=0
-
+  A3N$="BASSONA"
+  A3(0)=3:A3(1)=ADR(A3N$):A3(2)=0
   AS(0)=ADR(A1):AS(1)=ADR(A2)
+  AS(2)=ADR(A3)
 ENDPROC
 
 'LOAD NEXT NPC
@@ -172,41 +192,17 @@ ENDPROC
 
 'GET RANDOM ARTIFACT
 PROC GRA
-  'FOR I=0 TO 1 'LEN. AS()
-    'PRINT"ADR. ";AS(I)
-  'NEXT I
-  I=RAND(2) 'LEN. AS
+  I=RAND(3) 'LEN. AS
   'I=0 'XX
-  'PRINT I
   DIM RA(3):K=0 'RANDOM ART.
   FOR J=AS(I) TO AS(I)+4 STEP 2
-    'PRINT J
-    'IF K=1
-      '@GS DPEEK(J)
-    'ENDIF
     RA(K)=DPEEK(J)
     K=K+1
   NEXT J
-  'PRINT
-  'FOR K=0 TO 2
-    'IF K=1
-      '@GS RA(K)
-    'ELSE
-      'PRINT RA(K)
-    'ENDIF
-  'NEXT K
-ENDPROC
-
-'GET STRING
-PROC GS SA 'STRING ADR.
-  'PRINT "STRING. ADR. ";SA
-  TAN$="" 'TEMP. ART. NAME
-  'PRINT PEEK(SA)
-  FOR I=SA+1 TO I-1+PEEK(SA)
-    'PRINT CHR$(PEEK(I));
-    TAN$=+CHR$(PEEK(I))
-  NEXT I
-  PRINT TAN$;
+  FOR L=0 TO 2
+    PRINT RA(L)
+  NEXT L
+  GET K
 ENDPROC
 
 'GET REWARD
@@ -214,14 +210,11 @@ PROC GR
   POS. 9,2:PRINT"COLLECT YOUR REWARD"
   @GRA
   POS. 10,3:PRINT"(";RA(0);") ";
-  @GS RA(1):PRINT
+  PRINT $(RA(1))
   POS. 10,4:PRINT"(C) COINS"
   DO
     GET I
     IF I=RA(0)+48 'ATASCII
-      'PRINT I
-      'PRINT RA(0)
-      'PRINT RA(2)
       'COPY RA -> P1
       CPD=0 'COPIED
       'XX BETTER CHOOSE ART. SLOT
@@ -230,15 +223,13 @@ PROC GR
           P1(J)=RA(0)
           P1(J+1)=RA(2) 'XX SHLD BE NA
 ME
+          P1(J+4)=RA(1) 'XX TMP
           CPD=1
           'PRINT"ART. COPIED"
           'PRINT"ART. ";P1(J);" ";P1(J
 +1)
         ENDIF
       NEXT J
-      'PRINT"NOCHMAL"
-      'PRINT P1(10)
-      'PRINT P1(11)
       EXIT
     ELIF I=67
       PRINT"NOT IMPLEMENTED YET"
@@ -252,10 +243,10 @@ ENDPROC
 @IA
 CLS
 REPEAT
+  PHD=0:NHD=0 'HP DELTAS
   IF AN(0)=0 AND ANC<3
     IF ANC>0
-      @GR
-      'END
+      @GR:PAUSE 100
       CLS
     ENDIF
     @LNNPC
@@ -269,7 +260,6 @@ REPEAT
   ELIF AN(0)=0
     EXIT
   ENDIF
-  '@DRPL
 
   @RD
   IF D1>(D2+AN(3))
@@ -290,13 +280,13 @@ REPEAT
 (31)
   IF P1(28)=1 AND P1(30)>0 'APPLY DBFS
 
-    HD=HD+P1(29)
-    'PRINT"HD IDB ";HD
+    PHD=PHD+P1(29)
+    'PRINT"PHD IDB ";PHD
   ENDIF
 
   @DRPL
 
-  'PRINT"HD VA ";HD
+  'PRINT"PHD VA ";PHD
   FOR A=10 TO 20 STEP 5
     IF P1(A)>0
       IF D2>(D1+P1(3)) OR P1(28)>0
@@ -304,12 +294,16 @@ REPEAT
       ENDIF
     ENDIF
   NEXT A
-  'PRINT"HD NA ";HD
+  'PRINT"PHD NA ";PHD
 
-  IF HD<0
-    HD=0
+  IF NHD<0 THEN NHD=0 'CALC NPC HP
+  AN(0)=AN(0)-NHD:NHD=0 'CALC NPC HP
+  IF AN(0)<0
+    AN(0)=0
   ENDIF
-  P1(0)=P1(0)-HD:HD=0
+
+  IF PHD<0 THEN PHD=0 'CALC PLR HP
+  P1(0)=P1(0)-PHD:PHD=0
   IF P1(0)<0
     P1(0)=0
   ENDIF
@@ -339,7 +333,7 @@ REPEAT
   ENDIF
   'GET K:CLS
 UNTIL P1(0)<=0
-POS. 16,15
+POS. 16,7
 IF P1(0)<=0 AND AN(0)<=0
   PRINT"STALEMATE!"
 ELIF P1(0)<=0
