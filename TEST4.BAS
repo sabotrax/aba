@@ -1,0 +1,282 @@
+D1=0:D2=0
+I=0:J=0
+SO=1:BO=1 'SKIRMISH/BATTLE OVER
+DIM SK(4) 'LEN PS + LEN NPS - MAX 8
+
+'INIT PLAYERS
+PROC INPL
+  'ID,HP,MN,ATK,DEF,IN,POS,TGT,SYMB,X
+  DATA P1()=1,8,7,1,1,3,1,1,80,0,
+  'SP,SPC,SPV,X,X
+  DATA =1,5,2,0,0, '10-
+  DATA =0,0,0,0,0, '15- ATF  1-5
+  DATA =0,0,0,0,0, '20- ATF2 1-5
+  DATA =0,0,0,0,0, '25- ATF3 1-5
+  DATA =0,0,0,0,0, '30- DBF  1-5
+  DATA =0,0,0,0,0, '35- DBF2 1-5
+  DATA =0,0,0,0,0, '40- DBF3 1-5
+  DATA =0,0,0,0,0, '45- DBF4 1-5
+  'IHP,IMN,IATK,IDEF,IIN
+  DATA =8,7,1,1,3  '50-
+
+  LPS=1 'LEN PS()
+  DIM PS(LPS)
+  PS(0)=ADR(P1)
+
+  II=5*2 'INITIAITVE INDEX
+  LP=55*2
+ENDPROC
+
+'INIT NPCS
+PROC INNP
+  'ID,HP,MN,ATK,DEF,IN,POS,TGT
+  DATA NP1()=101,8,4,2,2,4,1,1,
+  'SP1-4,SYMB1-2
+  DATA =0,0,0,0,0,100
+  DATA NP2()=102,9,4,1,3,2,2,5,
+  DATA =1,2,2,4,115,100
+  DATA NP3()=103,7,4,3,2,5,0,0,
+  DATA =0,0,0,0,97,100
+
+  LNPS=3
+  DIM NPS(LNPS)
+  NPS(0)=ADR(NP1):NPS(1)=ADR(NP2)
+  NPS(2)=ADR(NP3)
+
+  'DATA NG1()=101,102,103 'NPC GROUP 1
+
+  'DATA NG1()=101,102 'NPC GROUP 1
+  DATA NG1()=2,101,102 'NPC GROUP 1
+  
+  DIM BTL(1) 'BATTLE
+  BTL(0)=ADR(NG1)
+  NGC=0 'NPC GROUP COUNTER
+  LBTL=1 'LEN BTL
+ENDPROC
+
+'CAST SPECIAL
+PROC CASP
+  'LOCAL MANA
+  LMN=PEEK(SK(I)+4)-PEEK(SK(I)+22)
+  POKE SK(I)+4,LMN
+  PRINT"  IMN ";PEEK(SK(I)+4)
+  IF PEEK(SK(I)+20)=1 'HEAL
+    LHP=PEEK(SK(I)+2)+PEEK(SK(I)+24)
+    IF LHP>PEEK(SK(I)+100)
+      LHP=PEEK(SK(I)+100)
+    ENDIF
+    POKE SK(I)+2,LHP
+    PRINT"  HEAL ";PEEK(SK(I)+2)
+  ENDIF
+ENDPROC
+
+'LOAD ACTIVE NPC GROUP
+PROC LANG
+  'NGX AND ANX MAX LEN IS 4
+  ' = 4 ENEMIES AT ONCE
+  LAN=14 'LEN ACTIVE NPC
+  DIM AN1(LAN),AN2(LAN),AN3(LAN),AN4(L
+AN)
+  DIM ANG(4) 'ACTIVE NPC GROUP
+  ANG(0)=ADR(AN1):ANG(1)=ADR(AN2)
+  ANG(2)=ADR(AN3):ANG(3)=ADR(AN4)
+  'PRINT PEEK(BTL(NGC))
+  K=0
+  FOR I=BTL(NGC)+2 TO BTL(NGC)+PEEK(BT
+L(NGC))*2 STEP 2
+    'PRINT PEEK(I) 'NPC IDS DER GRP
+    FOR J=0 TO LNPS-1
+      'PRINT" ";PEEK(NPS(J))
+      IF PEEK(I)=PEEK(NPS(J))
+        'PRINT"COPY TO ACT. NPC GRP."
+        'PRINT"NPS@J ";NPS(J)
+        'PRINT"ANG@K ";ANG(K)
+        MOVE NPS(J),ANG(K),LAN*2
+        INC K
+      ENDIF
+    NEXT J
+  NEXT I
+ENDPROC
+
+'PRINT PS
+PROC PPS
+  FOR I=0 TO LPS-1
+    FOR J=0 TO LP-2 STEP 2
+      PRINT PEEK(PS(I)+J);
+    NEXT J
+    PRINT
+  NEXT I
+ENDPROC
+
+'PICK INITIATIVE
+PROC PKIN
+  'REVERSE BUBBLE SORT
+  REPEAT
+    SORTED=1
+    FOR I=0 TO 4-2
+      'PRINT PEEK(SK(I))
+      IF PEEK(SK(I+1))=0 THEN EXIT
+      'PRINT"X ";PEEK(SK(I))
+      SRT1=PEEK(SK(I)+10)
+      SRT2=PEEK(SK(I+1)+10)
+      'PRINT SRT1;"--";SRT2;
+      IF SRT1<SRT2
+        TMP=SK(I)
+        SK(I)=SK(I+1)
+        SK(I+1)=TMP
+        'PRINT " -> MOVED"
+        SORTED=0
+      ELSE
+        'PRINT
+      ENDIF
+      'GET K
+    NEXT I
+  UNTIL SORTED
+ENDPROC
+
+'ROLL DICE
+PROC RD
+  D1=RAND(12)+1
+  D2=RAND(12)+1
+ENDPROC
+
+'REPLENISH MANA
+PROC RPMN
+  FOR II=0 TO 4-1 'XX HAS TO BE LEN(SK
+)
+    'ONLY PLRS ATM
+    'UNTIL NPCS HAVE INITIAL HP/MN
+    IF PEEK(SK(II))>0 AND PEEK(SK(II))
+<100
+      LMN=PEEK(SK(II)+4)
+      LMN=LMN+1
+      IF LMN>PEEK(SK(II)+102)
+        LMN=PEEK(SK(II)+102)
+      ENDIF
+      POKE SK(II)+4,LMN
+      PRINT"ID ";PEEK(SK(II));
+      PRINT" LMN ";LMN
+    ENDIF
+  NEXT II
+  PRINT
+ENDPROC
+
+'SOMEONE DEAD?
+PROC SD
+  SO=1:BO=1
+  FOR II=0 TO 4-1 'XX HTB LEN(SK)
+    IF PEEK(SK(II))>0 AND PEEK(SK(II)+
+2)>0
+      IF PEEK(SK(II))>100 THEN SO=0
+      IF PEEK(SK(II))<100 THEN BO=0
+    ENDIF
+  NEXT II
+ENDPROC
+
+'INIT SKIRMISH
+PROC INSK
+  FOR I=0 TO LPS-1
+    SK(I)=PS(I)
+  NEXT I
+  FOR I=0 TO 4-1
+    IF PEEK(ANG(I))=0 THEN EXIT
+    SK(I+LPS)=ANG(I)
+  NEXT I
+ENDPROC
+
+'MAIN
+@INPL
+'@PPS
+@INNP
+@LANG
+@INSK
+
+REPEAT
+  @PKIN
+
+  'UEBER ALLE SK()
+  FOR I=0 TO 4-1
+    IID=PEEK(SK(I))
+    IF IID>0
+      PRINT "PID ";IID;" TGT ";PEEK(SK
+(I)+14)
+      PHD=0:THD=0 'POS/TGT HD
+      @RD
+      PRINT"DICE ";D1;"--";D2
+      'GEGNER FINDEN
+      FOR J=0 TO 4-1
+        JID=PEEK(SK(J))
+        'ZIELE AUSMACHEN
+        IF JID>0 AND JID<>IID AND ABS(
+IID-JID)>=100
+          PRINT "TID ";JID;" POS ";PEE
+K(SK(J)+12)
+
+          ITGT=PEEK(SK(I)+14)
+          JPOS=PEEK(SK(J)+12)
+          IF ITGT=JPOS OR ITGT=5 AND J
+POS M.2>0 OR ITGT=6 AND JPOS M.2=0 OR 
+ITGT=7
+            IF IID<100
+              PRINT" PLRS TURN"
+              'APPLY BUFF ATFS
+              'LIKE CHANGE OF
+              'DEF,ATK,IN
+
+              'CAST SPECIAL
+              IMN=PEEK(SK(I)+4)
+              IF PEEK(SK(I)+20)>0 AND 
+IMN>=PEEK(SK(I)+22)
+                @CASP
+              ENDIF
+            ELSE
+              PRINT" NPCS TURN"
+            ENDIF
+
+            PRINT" DEF ";PEEK(SK(J)+8)
+
+            IF D1>D2+PEEK(SK(J)+8) 'DE
+F
+              PRINT"  HIT"
+              THD=PEEK(SK(I)+6) 'ATK
+            ELIF D1=D2+PEEK(SK(J)+8)
+              PRINT"  DRAW"
+            ELSE
+              PRINT"  MISS"
+            ENDIF
+
+            'CALC PHP/THP
+            PRINT" THP ";PEEK(SK(J)+2)
+;
+            IF THD>0
+              THP=PEEK(SK(J)+2)-THD
+              PRINT"->";THP
+              POKE SK(J)+2,THP
+            ELSE
+              PRINT
+            ENDIF
+            'APPLY SPECIAL ATFS
+            'LIKE POOR SOUL
+          
+            'SOMEONE DEAD?
+            'ALL NPCS DEAD? SKRM OVER
+            'ALL PLRS DEAD? BTL OVER
+            @SD
+            PRINT" SO ";SO;"/BO ";BO
+            'GET L
+          ENDIF
+          PRINT" THD ";THD
+          THD=0
+
+          GET M
+        ENDIF
+      NEXT J
+    ENDIF
+    PRINT"PHD ";PHD
+    PRINT
+    PHD=0
+
+    @RPMN
+  NEXT I
+UNTIL BO
+PRINT"VORBEI"
