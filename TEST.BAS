@@ -5,7 +5,7 @@ P1(0)=8:P1(1)=7:P1(2)=1
 P1(3)=1:P1(6)=1:P1(7)=4:P1(8)=2
 'ART,AR1,AR2
 'P1(10)=0:P1(11)=0:P1(12)=0
-P1(10)=0 
+P1(10)=0
 P1(15)=0:P1(16)=0:P1(17)=0
 P1(20)=0:P1(21)=0:P1(22)=0
 'IHP,IMN
@@ -199,9 +199,9 @@ PROC GRA
     RA(K)=DPEEK(J)
     K=K+1
   NEXT J
-  FOR L=0 TO 2
-    PRINT RA(L)
-  NEXT L
+  'FOR L=0 TO 2
+    'PRINT RA(L)
+  'NEXT L
   GET K
 ENDPROC
 
