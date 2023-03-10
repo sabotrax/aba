@@ -28,7 +28,7 @@ Be warned - this is alpha code and I haven't touched BASIC in 35 years.
   ```
   CWD DOS
   XBW130.DOS
-  LOAD ABA.COM
+  LOAD ABAT3.COM
   RUN
   ```
 * You can also edit the code in the FastBasic editor:
